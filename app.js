@@ -19,8 +19,10 @@ app.use(express.json())
 //user router /api 
 //app.use('/api',router);
 
+app.use('/api/users', require('./Routes/user'))
 app.use('/api/', require('./Routes/user'));
-app.use('/api/user/auth', require('./Routes/user'))
+app.use('/api/user/balance', require('./Routes/user_account'));
+ 
 
 
 //Routes

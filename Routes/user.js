@@ -1,5 +1,8 @@
 const express= require('express')
 const router= express.Router()
+
+
+
 const User= require('../models/user')
 const bcrypt= require('bcrypt')
 const { application } = require('express')
@@ -8,6 +11,22 @@ const user_jwt = require('../middleware/user_jwt')
 const jwt = require('jsonwebtoken')
 const { token } = require('morgan')
 
+
+
+//get all users
+router.get('/', async (req, res, next)=>{
+    const all_users_data = await User.find().select("-password")
+    res.send(all_users_data)
+})
+
+
+//get particular user
+
+
+router.get('/:id', async (req, res, next)=>{
+    const singleUserData = await User.findById(req.params.id)
+    res.send(singleUserData)
+})
 
 //authentication
 router.get('/', user_jwt ,async (req, res, next)=>{
