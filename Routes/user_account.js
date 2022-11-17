@@ -8,10 +8,59 @@ const { route } = require('./user')
 
 const router = express.Router()
 
+router.post('/register',async (req,res, next)=>{
+    const { name, email, number, password} = req.body;
+    try{
+        let userExist = await User.findOne({email: email});
+        if(userExist){
+            res.json({
+                success: false,
+                msg: 'user already exist'
+            });
+        }
+        let user = new User();
+        user.name= name;
+        user.email = email;
+        user.number= number;
+
+        const salt= await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+
+
+        await user.save();
+
+        const payload ={
+            user: {
+                id: user.id
+            }
+        }
+        jwt.sign(payload, process.env.jwtUserToken, {
+            expiresIn: 400000
+        }, (err, token)=>{
+            if(err) throw err;
+            res.status(200).json({
+                success: true,
+                token: token
+            })
+        })
+
+        
+    }catch(err){
+        console.log(err)
+    }
+})
+
+
+
+
+
+
+
+
+
+
 //post balance of particular user
-
-
-router.post('/', auth, async (req, res, next) => {
+router.post('/deposit', auth, async (req, res, next) => {
     try {
         const user_detail = await user_account.create({
             account_balance: req.body.account_balance,
@@ -41,7 +90,7 @@ router.post('/', auth, async (req, res, next) => {
 
 //fetch user data
 
-router.get('/', auth, async (req, res, next) => {
+router.get('/balance', auth, async (req, res, next) => {
     try {
 
         const user1 = await user_account.find({ user: req.user.id })
@@ -65,7 +114,9 @@ router.get('/', auth, async (req, res, next) => {
 
 //update account balance
 
-router.put('/:id', async (req, res, next) => {
+
+
+router.put('/withdraw/:id', async (req, res, next) => {
     try {
 
         let user1 = await user_account.findById(req.params.id);
@@ -82,8 +133,6 @@ router.put('/:id', async (req, res, next) => {
                 runValidators: true
             });
 
-       
-
         res.status(200).json({
             success: true,
             userDetails: user1,
@@ -95,5 +144,12 @@ router.put('/:id', async (req, res, next) => {
     }
 
 })
+
+
+//withdraw fund
+
+
+
+
 
 module.exports = router;

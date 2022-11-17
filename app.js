@@ -19,15 +19,12 @@ app.use(express.json())
 //user router /api 
 //app.use('/api',router);
 
-app.use('/api/users', require('./Routes/user'))
 app.use('/api/', require('./Routes/user'));
-app.use('/api/user/balance', require('./Routes/user_account'));
- 
-
+app.use('/api/', require('./Routes/user_account'));
 
 //Routes
-app.get('/', (req,res)=>{
-    res.send('working')
+app.get('/api/welcome', (req,res)=>{
+    res.send('Welcome to Bank of Ahmedabad')
 })
 
 

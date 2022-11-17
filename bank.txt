@@ -21,15 +21,27 @@ of the request will updated.
 
 Decided API needs to be developed.
 
- app.route('/api/register') - register new usr and authenticate
- app.route('/api/transfer') -  transfer fund after Authentication
- app.route('/api/withdraw') -  withdraw fund and update on database
- app.route('/api/users') - retrive uers
- app.route('/api/transaction/:accountNumber') - get transaction history of particular accountNumber
- app.route('/api/balance/:Id') - show fund on given user ID
- app.route('/api/changePassword') - change user password after Authentication
- app.route('/api/forgotPassword) - change user passwordd
- app.route('/api/user/:Id') - particular user using id
- app.route('/api/login') - login registered user
-app.route('/api/welcome') - welcome response
-app.route('/api/deposit') - add fund
+ 
+user_account/authenticate
+ 
+    app.route('/api/withdraw') -  withdraw fund and update on database
+    app.route('/api/deposit') - add fund
+
+    app.route('/api/transfer') -  transfer fund after Authentication
+    app.route('/api/transaction/:accountNumber') - get transaction history of particular accountNumber
+    
+    
+    app.route('/api/changePassword') - change user password after Authentication
+    app.route('/api/forgotPassword) - change user passwordd
+    
+
+    app.route('/api/balance/:Id') - show fund on given user ID
+ 
+
+user route
+
+    app.route('/api/welcome') - welcome response
+    app.route('/api/user/:Id') - particular user using id
+    app.route('/api/users') - retrive uers
+    app.route('/api/register') - register new usr and authenticate
+    app.route('/api/login') - login registered user

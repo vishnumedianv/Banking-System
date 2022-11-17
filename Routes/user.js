@@ -7,6 +7,10 @@ const User= require('../models/user')
 const bcrypt= require('bcrypt')
 const { application } = require('express')
 
+
+const defaultBalance = require('../middleware/Account_balance')
+const user_account = require('../models/user_account')
+
 const user_jwt = require('../middleware/user_jwt')
 const jwt = require('jsonwebtoken')
 const { token } = require('morgan')
@@ -14,7 +18,7 @@ const { token } = require('morgan')
 
 
 //get all users
-router.get('/', async (req, res, next)=>{
+router.get('/users', async (req, res, next)=>{
     const all_users_data = await User.find().select("-password")
     res.send(all_users_data)
 })
@@ -23,7 +27,7 @@ router.get('/', async (req, res, next)=>{
 //get particular user
 
 
-router.get('/:id', async (req, res, next)=>{
+router.get('/user/:id', async (req, res, next)=>{
     const singleUserData = await User.findById(req.params.id)
     res.send(singleUserData)
 })
@@ -54,6 +58,8 @@ router.post('/register',async (req,res, next)=>{
                 msg: 'user already exist'
             });
         }
+        
+
         let user = new User();
         user.name= name;
         user.email = email;
@@ -64,6 +70,15 @@ router.post('/register',async (req,res, next)=>{
 
 
         await user.save();
+
+        let NewAccountBalance = user_account({
+            account_balance: 0,
+            user: user.id
+        })
+
+        await NewAccountBalance.save();
+
+
 
         const payload ={
             user: {
@@ -84,7 +99,7 @@ router.post('/register',async (req,res, next)=>{
     }catch(err){
         console.log(err)
     }
-})
+}, defaultBalance)
 
 
 //Login
