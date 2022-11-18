@@ -6,6 +6,10 @@ const userAccount = new mongoose.Schema({
         type: Number,
 
     },
+    transaction:{
+        type: String,
+        default: ''
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
