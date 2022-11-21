@@ -36,6 +36,7 @@ mongoose.connect(process.env.DB_CONNECT)
 
 
 //listen
-app.listen(5000, ()=>{console.log(`Running on port 5000`)})
+app.listen(5000, {useNewUrlParser: true,
+    useUnifiedTopology: true,} , ()=>{console.log(`Running on port 5000`)})
 
 //http://localhost:5000/api/register
