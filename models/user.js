@@ -26,6 +26,10 @@ const userSchema= new mongoose.Schema({
     token:{
         type: String,
         default: ''
+    },
+    temp:{
+        type: String,
+        default: ''
     }
 })
 

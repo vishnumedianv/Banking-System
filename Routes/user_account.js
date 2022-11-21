@@ -282,19 +282,20 @@ router.post('/transfer/:id', auth, async (req, res, next) => {
             user: receiverUser.id
         })
 
-        receiverUserBalance.save()
+        receiverUserBalance.save()      
 
         await user.findByIdAndUpdate(receiver, { 'Balance': receiverTotal }, {
             new: true,
             runValidators: true
         });
 
-        const userUpdate = await user.findById(req.params.id)
-        const receiverUpdate = await user.findById(receiver)
+        const userUpdate = await user.findById(req.params.id).select('-password')
+        const receiverUpdate = await user.findById(receiver).select('-password')
 
         res.status(200).json({
             success: true,
-            userDetails: userUpdate,
+            Sender: userUpdate,
+            Receiver: receiverUpdate,
             msg: 'sent successfully',
             
         })
@@ -306,7 +307,5 @@ router.post('/transfer/:id', auth, async (req, res, next) => {
 })
 
 
-
-
-
 module.exports = router;
+  
