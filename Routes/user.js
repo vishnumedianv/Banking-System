@@ -209,7 +209,10 @@ router.post('/forgot', async (req, res, next) => {
         const temp = randomstring.generate()
         sendresetmail(user.name, user.email, temp);
 
+        await User.findByIdAndUpdate({ _id: user.id }, { $set: { temp: temp } }, { new: true })
+
         res.status(200).send('Email sent')
+
 
     } catch (err) {
         res.status(400).json({
@@ -227,8 +230,8 @@ router.post('/forgot', async (req, res, next) => {
 router.post('/reset', async (req, res) => {
     try {
         const temp = req.query.token
-        const tokenData = await User.findOne({ temp: token })
-        if (!token) {
+        const tokenData = await User.findOne({ temp: temp })
+        if (!temp) {
             res.status(400).json({
                 msg: 'invalid token'
             })
