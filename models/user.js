@@ -13,7 +13,7 @@ const userSchema= new mongoose.Schema({
     number:{
         type: Number,
         require: true,
-        maxlength: 10
+        max: 9999999999
     },
     password:{
         type: String,
@@ -27,9 +27,17 @@ const userSchema= new mongoose.Schema({
         type: String,
         default: ''
     },
+    emailverification:{
+        type: String,
+        default: ''
+    },
     temp:{
         type: String,
         default: ''
+    },
+    verified:{
+        type: Boolean,
+        default: false
     }
 })
 

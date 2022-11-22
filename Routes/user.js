@@ -20,20 +20,56 @@ const randomstring = require('randomstring')
 const sendresetmail = async (name, email, temp) => {
     try {
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            host: 'smtp.ethereal.email',
             port: 587,
             auth: {
-                user: 'vishnu@medianv.com',
-                pass: 'waaxqpcrjnubbhgz'
+                user: 'john.satterfield36@ethereal.email',
+                pass: '1jj6ffycy6GjMZMRrX'
             }
         });
 
 
         const mailOptions = {
-            from: 'vishnu@medianv.com',
-            to: email,
+            from: 'john.satterfield36@ethereal.email',
+            to: 'wirova3970@fdsdfdfddfddfdfdfdd.com',
             subject: 'Reset password',
             html: '<p> Hi, please click <a href="http://localhost:5000/api/reset?token=' + temp + '"> here</a>'
+
+        }
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error)
+            }
+            else {
+                console.log("mail sent", info.response)
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+//user verification email
+const verifyuser = async (name, email, emailtemp) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            auth: {
+                user: 'john.satterfield36@ethereal.email',
+                pass: '1jj6ffycy6GjMZMRrX'
+            }
+        });
+
+
+        const mailOptions = {
+            from: 'john.satterfield36@ethereal.email',
+            to: 'wirova3970@fdsdfdfddfddfdfdfdd.com',
+            subject: 'Verification',
+            html: '<p> Hi, please click <a href="http://localhost:5000/api/verify?etemp=' + emailtemp + '"> here</a> to verify</p>'
 
         }
 
@@ -104,7 +140,10 @@ router.post('/register', async (req, res, next) => {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
 
+        const etemp = randomstring.generate()
+        verifyuser(user.name, user.email, etemp);
 
+        user.emailverification= etemp;
         await user.save();
 
         let NewAccountBalance = user_account({
@@ -129,7 +168,8 @@ router.post('/register', async (req, res, next) => {
 
             res.status(200).json({
                 success: true,
-                token: token
+                token: token,
+                msg: "verification mail sent to registered email please verify"
             })
         })
 
@@ -141,7 +181,89 @@ router.post('/register', async (req, res, next) => {
 })
 
 
+//user verification mail
+router.post('/verify', async (req, res) => {
+    try {
+        const temp = req.query.etemp
+        const tokenData = await User.findOne({ emailverification: temp })
+        if (!temp) {
+            res.status(400).json({
+                msg: 'invalid token'
+            })
+        }
+
+
+        const userData = await User.findByIdAndUpdate({ _id: tokenData.id }, { $set: { verified: true, emailverification: '' } }, { new: true })
+
+        res.status(200).json({userAccount: userData.id, username: userData.name, useremail: userData.email, msg: 'verification successful'})
+    } catch (error) {
+        res.status(400).json({
+            msg: 'something went wrong'
+        })
+    }
+})
+
+
+
 //Login
+// router.post('/login', async (req, res, next) => {
+//     const email = req.body.email;
+//     const password = req.body.password;
+
+//     try {
+//         let user = await User.findOne({ email: email })
+//         if (!user) {
+//             res.status(400).json({
+//                 success: false,
+//                 msg: 'user not exsists'
+//             })
+//         }
+
+
+//         const isMatch = await bcrypt.compare(password, user.password)
+//         if (!isMatch) {
+//             return res.status(400).json({
+//                 success: false,
+//                 msg: 'Invalid Password'
+//             })
+//         }
+
+//         const payload = {
+//             user: {
+//                 id: user.id
+//             }
+//         }
+
+//         jwt.sign(
+//             payload, process.env.jwtUserToken,
+//             {
+//                 expiresIn: 40000
+//             }, (err, token) => {
+//                 if (err) throw err;
+
+//                 res.status(200).json({
+//                     success: true,
+//                     msg: 'user login successful',
+//                     token: token,
+//                     user: user
+//                 });
+//             }
+//         )
+
+//     } catch (err) {
+//         res.status(401).json({
+//             success: false,
+//             msg: 'something went wrong'
+//         })
+//     }
+// })
+
+
+
+
+
+//login with user verfification
+
 router.post('/login', async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -177,12 +299,23 @@ router.post('/login', async (req, res, next) => {
             }, (err, token) => {
                 if (err) throw err;
 
-                res.status(200).json({
+                
+                if(user.verified == false){
+                    res.status(200).json({
+                        success: true,
+                        msg: 'please verify your email address before fund transfer!!!',
+                        token: token,
+                        user: user
+                    });
+                }else{
+                    res.status(200).json({
                     success: true,
                     msg: 'user login successful',
                     token: token,
                     user: user
-                });
+                });}
+
+                
             }
         )
 
@@ -221,9 +354,6 @@ router.post('/forgot', async (req, res, next) => {
         })
         next()
     }
-
-
-
 })
 
 //reset password

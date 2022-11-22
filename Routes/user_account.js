@@ -193,12 +193,12 @@ router.post('/withdraw/:id', auth, async (req, res, next) => {
 
         let newAmount = req.body.account_balance
         const singleUserData = await user.findById(req.params.id)
-        if(newAmount>singleUserData.Balance){
+        if (newAmount > singleUserData.Balance) {
             res.json({
                 msg: 'insuficient fund'
             })
             var total = singleUserData.Balance
-        }else{
+        } else {
             total = singleUserData.Balance - newAmount
         }
 
@@ -237,7 +237,7 @@ router.post('/transfer/:id', auth, async (req, res, next) => {
 
         const sendAmount = req.body.transferamount;
         const receiver = req.body.receiverID
-        
+
         let user1 = await user.findById(req.params.id);
         if (!user1) {
             return res.status(400).json({
@@ -247,59 +247,68 @@ router.post('/transfer/:id', auth, async (req, res, next) => {
         }
 
         //sender 
-        const senderUser = await user.findById(req.params.id)
-        if(sendAmount>senderUser.Balance){
-            res.json({
-                msg: 'insuficient fund'
+        if (user1.verified == true) {
+            const senderUser = await user.findById(req.params.id)
+            if (sendAmount > senderUser.Balance) {
+                res.json({
+                    msg: 'insuficient fund'
+                })
+                throw Error
+            } else {
+                total = senderUser.Balance - sendAmount
+            }
+
+            const userBalance = await user_account.create({
+                account_balance: sendAmount,
+                transaction: 'Debit',
+                user: user1.id
             })
-            throw Error
-        }else{
-            total = senderUser.Balance - sendAmount
+
+            userBalance.save()
+
+            await user.findByIdAndUpdate(req.params.id, { 'Balance': total }, {
+                new: true,
+                runValidators: true
+            });
+
+        } else {
+            res.status(401).send('sender is not verified')
         }
 
-        const userBalance = await user_account.create({
-            account_balance: sendAmount,
-            transaction: 'Debit',
-            user: user1.id
-        })
-
-        userBalance.save()
-
-        await user.findByIdAndUpdate(req.params.id, { 'Balance': total }, {
-            new: true,
-            runValidators: true
-        });
-
         //Receiver
+        let recipient = await user.findById(receiver)
+        console.log(recipient.verified)
+        if (recipient.verified == true) {
+            const receiverUser = await user.findById(receiver)
+            const receiverTotal = receiverUser.Balance + sendAmount
 
-        const receiverUser = await user.findById(receiver)
-        const receiverTotal = receiverUser.Balance + sendAmount
 
+            const receiverUserBalance = await user_account.create({
+                account_balance: sendAmount,
+                transaction: 'Credit',
+                user: receiverUser.id
+            })
 
-        const receiverUserBalance = await user_account.create({
-            account_balance: sendAmount,
-            transaction: 'Credit',
-            user: receiverUser.id
-        })
+            receiverUserBalance.save()
 
-        receiverUserBalance.save()      
+            await user.findByIdAndUpdate(receiver, { 'Balance': receiverTotal }, {
+                new: true,
+                runValidators: true
+            });
 
-        await user.findByIdAndUpdate(receiver, { 'Balance': receiverTotal }, {
-            new: true,
-            runValidators: true
-        });
+            const userUpdate = await user.findById(req.params.id).select('-password')
+            const receiverUpdate = await user.findById(receiver).select('-password')
 
-        const userUpdate = await user.findById(req.params.id).select('-password')
-        const receiverUpdate = await user.findById(receiver).select('-password')
+            res.status(200).json({
+                success: true,
+                Sender: userUpdate,
+                Receiver: receiverUpdate,
+                msg: 'sent successfully',
 
-        res.status(200).json({
-            success: true,
-            Sender: userUpdate,
-            Receiver: receiverUpdate,
-            msg: 'sent successfully',
-            
-        })
-
+            })
+        } else {
+            res.status(401).send('receiver is not verified!!')
+        }
     } catch (err) {
         next(err)
     }
@@ -308,4 +317,3 @@ router.post('/transfer/:id', auth, async (req, res, next) => {
 
 
 module.exports = router;
-  
